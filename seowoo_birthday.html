@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Seowoo 🎂✨</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --pink: #f0a0c0;
+    --pink-glow: #ff6eb4;
+    --purple: #b06aff;
+    --blue: #5de0f5;
+    --gold: #ffe084;
+    --dark: #06020f;
+    --card-bg: rgba(255,255,255,0.05);
+    --card-border: rgba(255,255,255,0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: #fff;
+    font-family: 'Georgia', serif;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--pink-glow); border-radius: 4px; }
+
+  /* ── SECTION BASE ── */
+  section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 60px 24px;
+  }
+
+  /* ═══════════════════════════════════════
+     SECTION 1 — HERO / MUSIC
+  ═══════════════════════════════════════ */
+  #hero {
+    overflow: hidden;
+    background: transparent;
+  }
+
+  #canvas-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .hero-title {
+    font-size: clamp(2.2rem, 7vw, 5.5rem);
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, #fff 0%, var(--pink) 40%, var(--purple) 80%, var(--blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+    text-shadow: none;
+    opacity: 0;
+  }
+
+  .hero-sub {
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    opacity: 0;
+  }
+
+  /* ── MUSIC PLAYER ── */
+  #music-player {
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,182,220,0.25);
+    border-radius: 60px;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    opacity: 0;
+    transition: border-color 0.3s;
+  }
+  #music-player:hover { border-color: rgba(255,110,180,0.5); }
+
+  .music-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+    color: #fff;
+  }
+  .music-btn:hover { background: rgba(255,110,180,0.2); transform: scale(1.1); }
+  .music-btn.close-btn { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+  .music-btn.close-btn:hover { color: #fff; background: rgba(255,80,80,0.2); }
+
+  .music-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Courier New', monospace;
+    min-width: 80px;
+  }
+
+  .music-bar {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 20px;
+  }
+  .music-bar span {
+    width: 3px;
+    background: var(--pink-glow);
+    border-radius: 3px;
+    animation: bar 0.8s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .music-bar span:nth-child(1) { height: 8px; animation-delay: 0s; }
+  .music-bar span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+  .music-bar span:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+  .music-bar span:nth-child(4) { height: 18px; animation-delay: 0.1s; }
+  .music-bar span:nth-child(5) { height: 6px; animation-delay: 0.25s; }
+
+  @keyframes bar {
+    0%, 100% { transform: scaleY(0.4); }
+    50% { transform: scaleY(1); }
+  }
+
+  .music-bar.playing span { opacity: 1; }
+
+  #music-player.hidden { display: none; }
+
+  /* scroll hint */
+  .scroll-hint {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    animation: fadeHint 2s ease 3s forwards;
+  }
+  @keyframes fadeHint {
+    0% { opacity: 0; transform: translateX(-50%) translateY(6px); }
+    100% { opacity: 0.4; transform: translateX(-50%) translateY(0); }
+  }
+  .scroll-hint span {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Courier New', monospace;
+  }
+  .scroll-arrow {
+    width: 20px;
+    height: 20px;
+    border-right: 1px solid rgba(255,255,255,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.4);
+    transform: rotate(45deg);
+    animation: bounce 1.5s ease-in-out infinite;
+    margin-top: -6px;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(5px); }
+  }
+
+  /* ═══════════════════════════════════════
+     SECTION 2 — BIRTHDAY MESSAGE
+  ═══════════════════════════════════════ */
+  #message-section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid var(--card-border);
+    border-radius: 28px;
+    padding: 56px 48px;
+    max-width: 720px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,110,180,0.7), transparent);
+  }
+
+  .birthday-heading {
+    font-size: clamp(1.8rem, 4.5vw, 3rem);
+    font-weight: 300;
+    line-height: 1.3;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--pink) 50%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 24px;
+    letter-spacing: 0.04em;
+  }
+
+  .birthday-body {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    line-height: 1.9;
+    color: rgba(255,255,255,0.72);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  .glow-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0.18;
+  }
+
+  /* ═══════════════════════════════════════
+     SECTION 3 — OPEN MESSAGE BUTTON
+  ═══════════════════════════════════════ */
+  #popup-section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, rgba(176,106,255,0.25), rgba(255,110,180,0.25));
+    border: 1px solid rgba(255,110,180,0.4);
+    color: #fff;
+    font-size: 1rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 18px 48px;
+    border-radius: 60px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(176,106,255,0.15), rgba(255,110,180,0.15));
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: 60px;
+  }
+  .btn-primary:hover { border-color: rgba(255,110,180,0.8); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(255,110,180,0.2); }
+  .btn-primary:hover::before { opacity: 1; }
+  .btn-primary:active { transform: translateY(0); }
+
+  /* ── POPUP / MODAL ── */
+  #popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  #popup-overlay.active { opacity: 1; pointer-events: all; }
+
+  #popup-box {
+    background: rgba(15,6,30,0.95);
+    border: 1px solid rgba(255,110,180,0.3);
+    border-radius: 24px;
+    padding: 48px 44px;
+    max-width: 600px;
+    width: 100%;
+    position: relative;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    overflow: hidden;
+  }
+  #popup-overlay.active #popup-box {
+    transform: scale(1) translateY(0);
+  }
+  #popup-box::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,110,180,0.8), transparent);
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 16px; right: 18px;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 1.3rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 6px;
+    transition: color 0.2s;
+    font-family: sans-serif;
+  }
+  .popup-close:hover { color: #fff; }
+
+  .popup-letter-icon {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  #typed-text {
+    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+    line-height: 1.9;
+    color: rgba(255,255,255,0.82);
+    font-weight: 300;
+    min-height: 120px;
+  }
+
+  .typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.1em;
+    background: var(--pink-glow);
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 0.7s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ═══════════════════════════════════════
+     SECTION 4 — 3D SPACE
+  ═══════════════════════════════════════ */
+  #space-section {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  #space-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .space-overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .space-title {
+    font-size: clamp(1.5rem, 4vw, 2.8rem);
+    font-weight: 300;
+    background: linear-gradient(135deg, #fff 0%, var(--blue) 50%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+  }
+
+  .space-sub {
+    font-size: clamp(0.85rem, 1.8vw, 1rem);
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ═══════════════════════════════════════
+     SECTION 5 — PHOTO GALLERY
+  ═══════════════════════════════════════ */
+  #gallery-section {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .section-heading {
+    font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+    font-weight: 300;
+    text-align: center;
+    margin-bottom: 48px;
+    background: linear-gradient(135deg, var(--gold), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.08em;
+  }
+
+  .gallery-wrapper {
+    width: 100%;
+    max-width: 960px;
+    position: relative;
+  }
+
+  .gallery-track-outer {
+    overflow: hidden;
+    border-radius: 20px;
+  }
+
+  .gallery-track {
+    display: flex;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .gallery-slide {
+    min-width: 100%;
+    position: relative;
+  }
+
+  .gallery-img {
+    width: 100%;
+    height: clamp(260px, 45vw, 500px);
+    object-fit: cover;
+    display: block;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #1a0830, #0d1a30);
+  }
+
+  .gallery-placeholder {
+    width: 100%;
+    height: clamp(260px, 45vw, 500px);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 1px dashed rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.3);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+  }
+
+  .placeholder-icon { font-size: 2.5rem; opacity: 0.4; }
+
+  .gallery-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 48px 28px 24px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    border-radius: 0 0 20px 20px;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.8);
+    letter-spacing: 0.1em;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+  }
+
+  .gallery-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 24px;
+    padding: 0 4px;
+  }
+
+  .gallery-btn {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .gallery-btn:hover { background: rgba(255,110,180,0.2); border-color: rgba(255,110,180,0.5); transform: scale(1.05); }
+
+  .gallery-dots {
+    display: flex;
+    gap: 8px;
+  }
+
+  .gallery-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .gallery-dot.active { background: var(--pink-glow); transform: scale(1.4); }
+
+  /* ═══════════════════════════════════════
+     SECTION 6 — FINAL MESSAGE
+  ═══════════════════════════════════════ */
+  #final-section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .final-text {
+    font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+    font-weight: 300;
+    text-align: center;
+    line-height: 1.7;
+    max-width: 700px;
+    background: linear-gradient(135deg, #fff 0%, var(--blue) 40%, var(--purple) 70%, var(--pink) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.03em;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1s, transform 1s;
+  }
+  .final-text.visible { opacity: 1; transform: translateY(0); }
+
+  .star-row {
+    font-size: 1.5rem;
+    letter-spacing: 0.4em;
+    margin-top: 32px;
+    opacity: 0;
+    transition: opacity 1.2s 0.4s;
+  }
+  .star-row.visible { opacity: 0.6; }
+
+  /* ═══════════════════════════════════════
+     FOOTER
+  ═══════════════════════════════════════ */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 40px 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .footer-text {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.2em;
+    font-family: 'Courier New', monospace;
+  }
+
+  .footer-heart {
+    display: inline-block;
+    color: #ff4e8a;
+    animation: heartbeat 1.2s ease-in-out infinite;
+  }
+  @keyframes heartbeat {
+    0%,100%{transform:scale(1)} 40%{transform:scale(1.3)} 60%{transform:scale(1.1)}
+  }
+
+  /* ═══════════════════════════════════════
+     FLOATING PARTICLES OVERLAY
+  ═══════════════════════════════════════ */
+  #particles-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: float-particle linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes float-particle {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
+
+  /* ═══════════════════════════════════════
+     RESPONSIVE
+  ═══════════════════════════════════════ */
+  @media (max-width: 600px) {
+    .glass-card { padding: 36px 24px; }
+    #popup-box { padding: 36px 24px; }
+    .gallery-nav { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND THREE.JS CANVAS (fixed) -->
+<canvas id="canvas-bg"></canvas>
+
+<!-- FLOATING PARTICLES -->
+<div id="particles-overlay"></div>
+
+<!-- ══════════════════════════════════
+     SECTION 1: HERO + MUSIC
+══════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-content">
+    <p class="hero-sub" id="hero-sub">✦ a gift made with love ✦</p>
+    <h1 class="hero-title" id="hero-title">Happy Birthday<br>Seowoo</h1>
+
+    <div id="music-player">
+      <div class="music-bar" id="music-bar">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span class="music-label" id="music-label">Play Music</span>
+      <button class="music-btn" id="play-btn" aria-label="Play/Pause">▶</button>
+      <button class="music-btn close-btn" id="close-btn" aria-label="Close">✕</button>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-arrow"></div>
+  </div>
+
+  <audio id="bg-audio" loop preload="none">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
+</section>
+
+<!-- ══════════════════════════════════
+     SECTION 2: BIRTHDAY MESSAGE
+══════════════════════════════════ -->
+<section id="message-section">
+  <div class="glass-card" id="msg-card">
+    <div class="glow-orb" style="width:200px;height:200px;background:#ff6eb4;top:-60px;right:-40px;"></div>
+    <div class="glow-orb" style="width:160px;height:160px;background:#b06aff;bottom:-40px;left:-30px;"></div>
+    <h2 class="birthday-heading">Happy Birthday Seowoo 🎂✨</h2>
+    <p class="birthday-body">
+      You are truly special and I hope your day feels magical 💫<br><br>
+      May every star in the sky tonight shine just for you, and may the universe whisper how truly loved you are.
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     SECTION 3: OPEN MESSAGE
+══════════════════════════════════ -->
+<section id="popup-section">
+  <div style="text-align:center;margin-bottom:36px;">
+    <p style="font-size:0.8rem;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.35);font-family:'Courier New',monospace;margin-bottom:12px;">A special letter</p>
+    <h2 style="font-size:clamp(1.2rem,3vw,1.9rem);font-weight:300;color:rgba(255,255,255,0.8);">I wrote something just for you 💌</h2>
+  </div>
+  <button class="btn-primary" id="open-msg-btn">Open Message 💌</button>
+</section>
+
+<!-- POPUP MODAL -->
+<div id="popup-overlay" role="dialog" aria-modal="true" aria-label="Birthday letter">
+  <div id="popup-box">
+    <button class="popup-close" id="popup-close-btn" aria-label="Close">✕</button>
+    <span class="popup-letter-icon">💌</span>
+    <div id="typed-text"><span class="typing-cursor"></span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     SECTION 4: 3D SPACE
+══════════════════════════════════ -->
+<section id="space-section">
+  <canvas id="space-canvas"></canvas>
+  <div class="space-overlay">
+    <h2 class="space-title">Your Universe, Seowoo</h2>
+    <p class="space-sub">move your mouse to explore the galaxy</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     SECTION 5: PHOTO GALLERY
+══════════════════════════════════ -->
+<section id="gallery-section">
+  <h2 class="section-heading">Our Memories ✨</h2>
+
+  <div class="gallery-wrapper">
+    <div class="gallery-track-outer">
+      <div class="gallery-track" id="gallery-track">
+
+        <div class="gallery-slide">
+          <div class="gallery-placeholder" id="slide-1-inner">
+            <span class="placeholder-icon">📷</span>
+            <span>photo1.jpg</span>
+            <span style="font-size:0.7rem;opacity:0.5">Replace with your photo</span>
+          </div>
+          <div class="gallery-caption">A wonderful memory ✨</div>
+        </div>
+
+        <div class="gallery-slide">
+          <div class="gallery-placeholder">
+            <span class="placeholder-icon">📷</span>
+            <span>photo2.jpg</span>
+            <span style="font-size:0.7rem;opacity:0.5">Replace with your photo</span>
+          </div>
+          <div class="gallery-caption">Special moments 💕</div>
+        </div>
+
+        <div class="gallery-slide">
+          <div class="gallery-placeholder">
+            <span class="placeholder-icon">📷</span>
+            <span>photo3.jpg</span>
+            <span style="font-size:0.7rem;opacity:0.5">Replace with your photo</span>
+          </div>
+          <div class="gallery-caption">Forever treasured 🌠</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="gallery-nav">
+      <button class="gallery-btn" id="prev-btn" aria-label="Previous">←</button>
+      <div class="gallery-dots" id="gallery-dots"></div>
+      <button class="gallery-btn" id="next-btn" aria-label="Next">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════
+     SECTION 6: FINAL MESSAGE
+══════════════════════════════════ -->
+<section id="final-section">
+  <p class="final-text" id="final-text">
+    You are a star and I want you to shine in the space. 🌠<br>
+    I hope you may achieve all your goals and dreams of your life. 🎻
+  </p>
+  <div class="star-row" id="star-row">✦ &nbsp; ✦ &nbsp; ✦</div>
+</section>
+
+<!-- ══════════════════════════════════
+     FOOTER
+══════════════════════════════════ -->
+<footer>
+  <p class="footer-text">Made with <span class="footer-heart">❤</span> for Seowoo.</p>
+</footer>
+
+
+<script>
+/* ══════════════════════════════════════════════
+   1.  BACKGROUND THREE.JS STARFIELD (fixed bg)
+══════════════════════════════════════════════ */
+(function() {
+  const canvas = document.getElementById('canvas-bg');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+  camera.position.z = 600;
+
+  // Stars
+  const starGeo = new THREE.BufferGeometry();
+  const starCount = 3500;
+  const positions = new Float32Array(starCount * 3);
+  const sizes = new Float32Array(starCount);
+  const colors = new Float32Array(starCount * 3);
+  const starColors = [
+    [1,1,1], [1,0.85,0.95], [0.85,0.85,1], [0.7,0.9,1], [1,0.95,0.7]
+  ];
+  for (let i = 0; i < starCount; i++) {
+    positions[i*3]   = (Math.random()-0.5)*2400;
+    positions[i*3+1] = (Math.random()-0.5)*2400;
+    positions[i*3+2] = (Math.random()-0.5)*2400;
+    sizes[i] = Math.random()*2.5+0.5;
+    const c = starColors[Math.floor(Math.random()*starColors.length)];
+    colors[i*3]=c[0]; colors[i*3+1]=c[1]; colors[i*3+2]=c[2];
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  starGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const starMat = new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      attribute float size;
+      attribute vec3 color;
+      varying vec3 vColor;
+      varying float vAlpha;
+      uniform float uTime;
+      void main(){
+        vColor = color;
+        vec4 mvPos = modelViewMatrix * vec4(position,1.0);
+        float twinkle = 0.6 + 0.4*sin(uTime*2.0 + position.x*0.1 + position.y*0.07);
+        vAlpha = twinkle;
+        gl_PointSize = size * twinkle * (300.0 / -mvPos.z);
+        gl_Position = projectionMatrix * mvPos;
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      varying float vAlpha;
+      void main(){
+        float d = length(gl_PointCoord - vec2(0.5));
+        if(d > 0.5) discard;
+        float alpha = (0.5-d)*2.0 * vAlpha;
+        gl_FragColor = vec4(vColor, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexColors: true
+  });
+
+  const stars = new THREE.Points(starGeo, starMat);
+  scene.add(stars);
+
+  // Nebula clouds
+  function makeNebula(color, x, y, z, sz) {
+    const geo = new THREE.SphereGeometry(sz, 8, 8);
+    const mat = new THREE.MeshBasicMaterial({
+      color: color, transparent: true, opacity: 0.018,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x,y,z);
+    scene.add(mesh);
+  }
+  makeNebula(0xff6eb4, -200, 100, -300, 280);
+  makeNebula(0xb06aff, 250, -80, -400, 320);
+  makeNebula(0x5de0f5, -100, -200, -500, 260);
+
+  let mouseX = 0, mouseY = 0;
+  let targetRotX = 0, targetRotY = 0;
+
+  window.addEventListener('mousemove', e => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += 0.008;
+    starMat.uniforms.uTime.value = t;
+    targetRotY += (mouseX * 0.06 - targetRotY) * 0.03;
+    targetRotX += (mouseY * 0.04 - targetRotX) * 0.03;
+    stars.rotation.y = targetRotY + t * 0.015;
+    stars.rotation.x = targetRotX;
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+
+/* ══════════════════════════════════════════════
+   2. GSAP HERO ANIMATIONS
+══════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  gsap.to('#hero-sub', { opacity: 1, y: 0, duration: 1.2, ease: 'power2.out', delay: 0.3 });
+  gsap.fromTo('#hero-title', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.4, ease: 'power2.out', delay: 0.7 });
+  gsap.to('#music-player', { opacity: 1, duration: 1, delay: 1.5 });
+});
+
+
+/* ══════════════════════════════════════════════
+   3. MUSIC PLAYER
+══════════════════════════════════════════════ */
+const audio = document.getElementById('bg-audio');
+const playBtn = document.getElementById('play-btn');
+const closeBtn = document.getElementById('close-btn');
+const musicLabel = document.getElementById('music-label');
+const musicBar = document.getElementById('music-bar');
+const musicPlayer = document.getElementById('music-player');
+
+let playing = false;
+
+playBtn.addEventListener('click', () => {
+  if (!playing) {
+    audio.play().catch(() => {});
+    playBtn.textContent = '⏸';
+    musicLabel.textContent = 'Now Playing';
+    musicBar.classList.add('playing');
+    playing = true;
+  } else {
+    audio.pause();
+    playBtn.textContent = '▶';
+    musicLabel.textContent = 'Paused';
+    musicBar.classList.remove('playing');
+    playing = false;
+  }
+});
+
+closeBtn.addEventListener('click', () => {
+  audio.pause();
+  playing = false;
+  musicPlayer.classList.add('hidden');
+});
+
+
+/* ══════════════════════════════════════════════
+   4. SCROLL ANIMATIONS (Intersection Observer)
+══════════════════════════════════════════════ */
+const observerOptions = { threshold: 0.2 };
+
+const fadeObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, observerOptions);
+
+document.querySelectorAll('.final-text, .star-row').forEach(el => fadeObserver.observe(el));
+
+// Card slide-in
+const cardObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      gsap.to(entry.target, { opacity: 1, y: 0, duration: 1, ease: 'power2.out' });
+      cardObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+gsap.set('#msg-card', { opacity: 0, y: 50 });
+cardObserver.observe(document.getElementById('msg-card'));
+
+gsap.set('.btn-primary', { opacity: 0, y: 30 });
+const btnObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      gsap.to('.btn-primary', { opacity: 1, y: 0, duration: 0.8, ease: 'back.out(1.5)' });
+      btnObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+btnObserver.observe(document.getElementById('popup-section'));
+
+
+/* ══════════════════════════════════════════════
+   5. POPUP + TYPING ANIMATION
+══════════════════════════════════════════════ */
+const message = `Hi Seowoo, I know today is your Birthday 🎂 and I am so happy for you, I just wanted to make your birthday special so I made this gift by myself for you, just for you. 💕💕
+
+I hope you would like it. Just scroll down and have a look on it.
+
+Good luck for your another year. 💝`;
+
+const overlay = document.getElementById('popup-overlay');
+const openBtn = document.getElementById('open-msg-btn');
+const closePopupBtn = document.getElementById('popup-close-btn');
+const typedEl = document.getElementById('typed-text');
+let typingTimeout = null;
+
+function openPopup() {
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  typedEl.innerHTML = '<span class="typing-cursor"></span>';
+  let i = 0;
+  if (typingTimeout) clearTimeout(typingTimeout);
+
+  function type() {
+    if (i < message.length) {
+      const char = message[i];
+      const cursor = typedEl.querySelector('.typing-cursor');
+      if (char === '\n') {
+        cursor.insertAdjacentHTML('beforebegin', '<br>');
+      } else {
+        cursor.insertAdjacentText('beforebegin', char);
+      }
+      i++;
+      const delay = char === '.' || char === '!' || char === '?' ? 120 : (char === ',' ? 60 : 30);
+      typingTimeout = setTimeout(type, delay);
+    }
+  }
+  setTimeout(type, 400);
+}
+
+function closePopup() {
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+  if (typingTimeout) clearTimeout(typingTimeout);
+}
+
+openBtn.addEventListener('click', openPopup);
+closePopupBtn.addEventListener('click', closePopup);
+overlay.addEventListener('click', e => { if (e.target === overlay) closePopup(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePopup(); });
+
+
+/* ══════════════════════════════════════════════
+   6. SECTION 4 — THREE.JS SPACE SCENE
+══════════════════════════════════════════════ */
+(function() {
+  const spaceSection = document.getElementById('space-section');
+  const canvas = document.getElementById('space-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  let W = spaceSection.offsetWidth;
+  let H = spaceSection.offsetHeight;
+  renderer.setSize(W, H);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, W/H, 0.1, 1000);
+  camera.position.z = 5;
+
+  // Deep star field
+  const starGeo2 = new THREE.BufferGeometry();
+  const sc = 2000;
+  const sp = new Float32Array(sc*3);
+  for (let i=0;i<sc;i++){
+    sp[i*3]=(Math.random()-0.5)*80;
+    sp[i*3+1]=(Math.random()-0.5)*80;
+    sp[i*3+2]=(Math.random()-0.5)*80;
+  }
+  starGeo2.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  const starMat2 = new THREE.PointsMaterial({
+    color: 0xffffff, size: 0.08, transparent: true,
+    opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  scene.add(new THREE.Points(starGeo2, starMat2));
+
+  // Constellation lines
+  const lineMat = new THREE.LineBasicMaterial({
+    color: 0x5de0f5, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending
+  });
+  for (let k=0; k<12; k++) {
+    const pts = [];
+    const cx = (Math.random()-0.5)*20;
+    const cy = (Math.random()-0.5)*20;
+    const cz = (Math.random()-0.5)*20;
+    const sides = Math.floor(Math.random()*4)+3;
+    for (let j=0; j<=sides; j++) {
+      const angle = (j/sides)*Math.PI*2;
+      const r = 0.8+Math.random()*1.2;
+      pts.push(new THREE.Vector3(cx+Math.cos(angle)*r, cy+Math.sin(angle)*r, cz+Math.random()*0.5));
+    }
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    scene.add(new THREE.Line(geo, lineMat));
+  }
+
+  // Floating colorful particles
+  const fpCount = 150;
+  const fpGeo = new THREE.BufferGeometry();
+  const fpPos = new Float32Array(fpCount*3);
+  const fpCol = new Float32Array(fpCount*3);
+  const palettes = [[1,0.43,0.71],[0.69,0.42,1],[0.36,0.88,0.96],[1,0.88,0.52]];
+  for (let i=0;i<fpCount;i++){
+    fpPos[i*3]=(Math.random()-0.5)*30;
+    fpPos[i*3+1]=(Math.random()-0.5)*30;
+    fpPos[i*3+2]=(Math.random()-0.5)*30;
+    const c = palettes[Math.floor(Math.random()*palettes.length)];
+    fpCol[i*3]=c[0]; fpCol[i*3+1]=c[1]; fpCol[i*3+2]=c[2];
+  }
+  fpGeo.setAttribute('position', new THREE.BufferAttribute(fpPos, 3));
+  fpGeo.setAttribute('color', new THREE.BufferAttribute(fpCol, 3));
+  const fpMat = new THREE.PointsMaterial({
+    size: 0.18, transparent: true, opacity: 0.85,
+    vertexColors: true, blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const fpPoints = new THREE.Points(fpGeo, fpMat);
+  scene.add(fpPoints);
+
+  let mx=0, my=0;
+  let targetX=0, targetY=0;
+
+  window.addEventListener('mousemove', e=>{
+    mx=(e.clientX/window.innerWidth-0.5)*2;
+    my=(e.clientY/window.innerHeight-0.5)*2;
+  });
+
+  const resizeObs = new ResizeObserver(()=>{
+    W=spaceSection.offsetWidth;
+    H=spaceSection.offsetHeight;
+    renderer.setSize(W,H);
+    camera.aspect=W/H;
+    camera.updateProjectionMatrix();
+  });
+  resizeObs.observe(spaceSection);
+
+  let t=0;
+  function animateSpace(){
+    requestAnimationFrame(animateSpace);
+    t+=0.005;
+    targetX+=(mx*0.8-targetX)*0.04;
+    targetY+=(my*0.5-targetY)*0.04;
+    scene.rotation.y=targetX*0.3+t*0.04;
+    scene.rotation.x=targetY*0.2;
+    fpPoints.rotation.y=t*0.03;
+    fpPoints.rotation.z=t*0.015;
+    renderer.render(scene, camera);
+  }
+  animateSpace();
+})();
+
+
+/* ══════════════════════════════════════════════
+   7. GALLERY SLIDER
+══════════════════════════════════════════════ */
+(function() {
+  const track = document.getElementById('gallery-track');
+  const slides = track.querySelectorAll('.gallery-slide');
+  const dotsContainer = document.getElementById('gallery-dots');
+  const total = slides.length;
+  let current = 0;
+
+  // Try to load actual images
+  const imageFiles = ['photo1.jpg','photo2.jpg','photo3.jpg'];
+  slides.forEach((slide, i) => {
+    const img = new Image();
+    img.onload = () => {
+      const placeholder = slide.querySelector('.gallery-placeholder');
+      if (placeholder) {
+        const imgEl = document.createElement('img');
+        imgEl.src = imageFiles[i];
+        imgEl.className = 'gallery-img';
+        imgEl.alt = `Memory ${i+1}`;
+        slide.replaceChild(imgEl, placeholder);
+      }
+    };
+    img.src = imageFiles[i];
+  });
+
+  // Dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'gallery-dot' + (i===0?' active':'');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  });
+
+  function updateDots() {
+    document.querySelectorAll('.gallery-dot').forEach((d,i) => {
+      d.classList.toggle('active', i===current);
+    });
+  }
+
+  function goTo(idx) {
+    current = (idx + total) % total;
+    track.style.transform = `translateX(-${current*100}%)`;
+    updateDots();
+  }
+
+  document.getElementById('next-btn').addEventListener('click', () => goTo(current+1));
+  document.getElementById('prev-btn').addEventListener('click', () => goTo(current-1));
+
+  // Auto-advance
+  setInterval(() => goTo(current+1), 5000);
+
+  // Touch swipe
+  let startX = 0;
+  track.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  track.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    if (Math.abs(dx) > 40) goTo(dx < 0 ? current+1 : current-1);
+  }, { passive: true });
+})();
+
+
+/* ══════════════════════════════════════════════
+   8. FLOATING PARTICLES (CSS)
+══════════════════════════════════════════════ */
+(function() {
+  const container = document.getElementById('particles-overlay');
+  const colors = ['#ff6eb4','#b06aff','#5de0f5','#ffe084','#ffffff'];
+
+  for (let i=0; i<25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random()*4+2;
+    p.style.cssText = `
+      width:${size}px;height:${size}px;
+      left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      opacity:${Math.random()*0.5+0.2};
+      animation-duration:${Math.random()*15+10}s;
+      animation-delay:${Math.random()*10}s;
+    `;
+    container.appendChild(p);
+  }
+})();
+</script>
+</body>
+</html>
